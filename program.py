@@ -110,7 +110,7 @@ while True:
                     print(s.get_title())
                     Management.get_occupancy()
                     print()
-                    s = Start("CAR'S IN NOW")
+                    s = Start("CARS IN NOW")
                     print(s.get_frase())
                     Management.get_cars_in_now()
                     sleep(1)
