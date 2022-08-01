@@ -83,34 +83,45 @@ class Client:
             connection = connection.connect_psql()
             cursor = connection.cursor()
 
-            # cursor.execute("SELECT * FROM parking WHERE status = 'IN';")
-            # generating date and time
-            now = datetime.now()
-            date_in = now.date()
-            time_in = now.strftime("%Y/%m/%d, %H:%M:%S")
-            status = 'IN'
+            license_plate = [(input("License Plate: "))]
+            cursor.execute("SELECT status FROM parking WHERE license_plate = %s "
+                           "ORDER BY status = 'IN' DESC LIMIT 1;", license_plate)
+            results = cursor.fetchone()
+            for result in results:
+                if result == 'OUT':
+                    # Erasing the brackets in the list to add the correct license plate into the table
+                    l_plate = (''.join(license_plate))
 
-            # Regular client entering the car park.
-            person = [(input("License Plate: "),
-                       date_in,
-                       time_in,
-                       status)]
-            for p in person:
-                cursor.execute("INSERT INTO parking(license_plate, date_in, time_in, status) "
-                               "VALUES(%s, %s, %s , %s);", p)
-                print(f"\033[32m'Ready. Client IN.'\033[m")
+                    # generating date and time
+                    now = datetime.now()
+                    date_in = now.date()
+                    time_in = now.strftime("%Y/%m/%d, %H:%M:%S")
+                    status = 'IN'
+
+                    # Regular client entering the car park.
+                    person = [(l_plate,
+                               date_in,
+                               time_in,
+                               status)]
+                    for p in person:
+                        cursor.execute("INSERT INTO parking(license_plate, date_in, time_in, status) "
+                                       "VALUES(%s, %s, %s , %s);", p)
+                        print(f"\033[32m'Ready. Client IN.'\033[m")
+                else:
+                    print("\033[31mSorry. License Plate already in the car park.\033[m\n")
+
             print()
             connection.commit()
 
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mSorry. No customer with that license plate registered in the car park.", "\033[m")
 
     @staticmethod
     def get_client_info():
         print()
-        s = Start("CLIENT'S INFO")
+        s = Start("CLIENT")
         print(s.get_title())
         sleep(1)
         try:
@@ -118,40 +129,50 @@ class Client:
             connection = connection.connect_psql()
             cursor = connection.cursor()
 
-            customer = [(input("License Plate: "))]
-            cursor.execute("SELECT first_name, last_name, make, color"
-                           " FROM clients WHERE license_plate = %s;"
-                           , customer)
-
-            # Info of a client, from the table clients.
-            results = cursor.fetchmany(4)
-            print("Customer's Details:")
+            license_plate = [(input("License Plate: "))]
+            cursor.execute("SELECT status FROM parking WHERE license_plate = %s;", license_plate)
+            results = cursor.fetchall()
             for result in results:
-                print("\033[37mFirst Name:\033[m", result[0])
-                print("\033[37mLast Name:\033[m", result[1])
-                print("\033[37mMake:\033[m", result[2])
-                print("\033[37mColor:\033[m", result[3], "\n")
-            connection.commit()
+                if result:
+                    cursor.execute("SELECT first_name, last_name, make, color"
+                                   " FROM clients WHERE license_plate = %s;"
+                                   , license_plate)
 
-            cursor.execute("SELECT time_in, time_out, price, status FROM parking WHERE license_plate = %s"
-                           "ORDER BY date_in DESC;"
-                           , customer)
-            results = cursor.fetchmany(4)
-            print("Car Park entries:")
-            for result in results:
-                print("\033[37m\t-Entry:\033[m", result[0])
-                if result[3] == 'IN':
-                    print("\033[1;37m\t-Status:\033[1;32m", result[3], "\033[m", "\n")
-                else:
-                    print("\033[37m\t-Out:\033[m", result[1])
-                    print("\033[37m\t-Paid:\033[m$", result[2])
-                    print("\033[1;37m\t-Status:\033[1;31m", result[3], "\033[m", "\n")
+                    # Info of a client, from the table clients.
+                    records = cursor.fetchmany(4)
+                    print("Customer's Details:")
+                    for record in records:
+                        print("\033[37mFirst Name:\033[m", record[0])
+                        print("\033[37mLast Name:\033[m", record[1])
+                        print("\033[37mMake:\033[m", record[2])
+                        print("\033[37mColor:\033[m", record[3], "\n")
+                    connection.commit()
+
+                    cursor.execute("SELECT time_in, time_out, price, status FROM parking WHERE license_plate = %s"
+                                   "ORDER BY date_in DESC;"
+                                   , license_plate)
+                    results = cursor.fetchmany(4)
+                    print("Car Park entries:")
+                    for r in results:
+                        print("\033[37m\t-Entry:\033[m", r[0])
+                        if r[3] == 'IN':
+                            print("\033[1;37m\t-Status:\033[1;32m", r[3], "\033[m", "\n")
+                        else:
+                            print("\033[37m\t-Out:\033[m", r[1])
+                            print("\033[37m\t-Paid:\033[m$", r[2])
+                            print("\033[1;37m\t-Status:\033[1;31m", r[3], "\033[m", "\n")
+                    connection.commit()
+                    break
+            else:
+                print("\033[31mNo customer with this License Plate\033[m")
+
+            print()
             connection.commit()
 
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mNo customer with that license plate registered in the car park.", "\033[m")
 
     @staticmethod
     def clients_list():
@@ -267,7 +288,7 @@ class Management:
     @staticmethod
     def payment():
         print()
-        s = Start("PAYMENT/CUSTOMER OUT")
+        s = Start("CLIENT")
         print(s.get_title())
         sleep(1)
         try:
@@ -275,66 +296,81 @@ class Management:
             connection = connection.connect_psql()
             cursor = connection.cursor()
 
-            # Customer leaving (time)
-            license_plate = (input("License Plate: "))
-            status = 'IN'
-            now = datetime.now()
-            time_out = now.strftime("%Y/%m/%d, %H:%M:%S")
+            license_plate = [(input("License Plate: "))]
+            cursor.execute("SELECT p.status FROM parking AS p"
+                           " JOIN clients AS c"
+                           " ON p.license_plate = c.license_plate"
+                           " WHERE p.license_plate = %s"
+                           " ORDER BY p.status = 'IN' DESC LIMIT 1;", license_plate)
+            results = cursor.fetchone()
+            for result in results:
+                if result == 'IN':
+                    # Erasing the brackets in the list to add the correct license plate into the table
+                    l_plate = (''.join(license_plate))
 
-            cursor.execute("UPDATE parking SET time_out = %s "
-                           "WHERE license_plate = %s AND status = %s;",
-                           (time_out, license_plate, status))
+                    # Customer leaving (time)
+                    status = 'IN'
+                    now = datetime.now()
+                    time_out = now.strftime("%Y/%m/%d, %H:%M:%S")
 
-            connection.commit()
+                    cursor.execute("UPDATE parking SET time_out = %s "
+                                   "WHERE license_plate = %s AND status = %s;",
+                                   (time_out, l_plate, status))
 
-            # Customer leaving (day)
-            cursor.execute("UPDATE parking SET date_out = now() "
-                           "WHERE license_plate = %s AND status = %s;",
-                           (license_plate, status))
-            connection.commit()
+                    connection.commit()
 
-            # Amount of time the car stayed in the parking-lot in hours
-            cursor.execute("UPDATE parking SET time_period = ((EXTRACT(DAY FROM date_out::timestamp - "
-                           "date_in::timestamp) * (24 * 60)) + (EXTRACT(HOUR FROM time_out::time "
-                           "- time_in::time) * 60) + EXTRACT(MINUTES FROM time_out::time - time_in::time)) / 60"
-                           " WHERE license_plate=%s AND status = %s;",
-                           (license_plate, status))
-            connection.commit()
-            cursor.execute("UPDATE parking SET time_period = ROUND(time_period::numeric, 2) "
-                           "WHERE license_plate=%s AND status = %s;",
-                           (license_plate, status))
-            connection.commit()
+                    # Customer leaving (day)
+                    cursor.execute("UPDATE parking SET date_out = now() "
+                                   "WHERE license_plate = %s AND status = %s;",
+                                   (l_plate, status))
+                    connection.commit()
 
-            # Amount to be paid: time stayed in the car park by the price $10 per hour
-            cursor.execute(
-                "UPDATE parking SET price = time_period * 10 "
-                "WHERE license_plate=%s AND status = %s;", (license_plate, status))
-            connection.commit()
-            cursor.execute("UPDATE parking SET price = ROUND(price::numeric, 2) "
-                           "WHERE license_plate=%s AND status = %s;",
-                           (license_plate, status))
-            connection.commit()
+                    # Amount of time the car stayed in the parking-lot in hours
+                    cursor.execute("UPDATE parking SET time_period = ((EXTRACT(DAY FROM date_out::timestamp - "
+                                   "date_in::timestamp) * (24 * 60)) + (EXTRACT(HOUR FROM time_out::time "
+                                   "- time_in::time) * 60) + EXTRACT(MINUTES FROM time_out::time - time_in::time)) / 60"
+                                   " WHERE license_plate=%s AND status = %s;",
+                                   (l_plate, status))
+                    connection.commit()
+                    cursor.execute("UPDATE parking SET time_period = ROUND(time_period::numeric, 2) "
+                                   "WHERE license_plate=%s AND status = %s;",
+                                   (l_plate, status))
+                    connection.commit()
 
-            # Status of the customer/car IN or OUT
-            cursor.execute("UPDATE parking SET status = CASE WHEN price > 0 THEN 'OUT' ELSE 'IN' "
-                           "END WHERE license_plate = %s AND status = %s;",
-                           (license_plate, status))
-            connection.commit()
+                    # Amount to be paid: time stayed in the car park by the price $10 per hour
+                    cursor.execute(
+                        "UPDATE parking SET price = time_period * 10 "
+                        "WHERE license_plate=%s AND status = %s;", (l_plate, status))
+                    connection.commit()
+                    cursor.execute("UPDATE parking SET price = ROUND(price::numeric, 2) "
+                                   "WHERE license_plate=%s AND status = %s;",
+                                   (l_plate, status))
+                    connection.commit()
 
-            cursor.execute("SELECT time_period, price FROM parking WHERE license_plate = %s AND time_out = %s;",
-                           (license_plate, time_out))
-            record = cursor.fetchmany(2)
-            for r in record:
-                print(f'Parking Period: {r[0]} hours')
-                print(f'Total: ${r[1]}')
-                print("\033[32m'PAID'\033[m")
+                    # Status of the customer/car IN or OUT
+                    cursor.execute("UPDATE parking SET status = CASE WHEN price > 0 THEN 'OUT' ELSE 'IN' "
+                                   "END WHERE license_plate = %s AND status = %s;",
+                                   (l_plate, status))
+                    connection.commit()
+
+                    cursor.execute("SELECT time_period, price FROM parking WHERE license_plate = %s AND time_out = %s;",
+                                   (l_plate, time_out))
+                    record = cursor.fetchmany(2)
+                    for r in record:
+                        print(f'Parking Period: {r[0]} hours')
+                        print(f'Total: ${r[1]}')
+                        print("\033[32m'PAID'\033[m")
+                    connection.commit()
+                else:
+                    print("\033[31mError. License Plate a NOT in the car park.\033[m")
+
+            print()
             connection.commit()
 
             cursor.close()
             connection.close()
-
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mNo customer with that license plate registered in the car park.", "\033[m")
 
     @staticmethod
     def get_cars_in_now():
