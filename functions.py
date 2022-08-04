@@ -116,7 +116,7 @@ class Client:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mSorry. No customer with that license plate registered in the car park.", "\033[m")
+            print("\033[31mSorry. No customer with that license plate registered in the car park.\033[m")
 
     @staticmethod
     def get_client_info():
@@ -172,7 +172,7 @@ class Client:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mNo customer with that license plate registered in the car park.", "\033[m")
+            print("\033[31mNo customer with that license plate registered in the car park.\033[m")
 
     @staticmethod
     def clients_list():
@@ -200,7 +200,7 @@ class Client:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, please try again.\033[m")
 
     @staticmethod
     def update_car_details():
@@ -213,21 +213,31 @@ class Client:
             connection = connection.connect_psql()
             cursor = connection.cursor()
 
-            # Update customer's car details
-            old_license = (input("Old License Plate: "))
-            new_license = (input("New License Plate: "))
-            make = (input("Make: "))
-            color = (input("Color: "))
+            # Check if the license plate is in the system.
+            old_license = [(input("Old License Plate: "))]
+            cursor.execute("SELECT license_plate FROM clients WHERE license_plate = %s;", old_license)
+            results = cursor.fetchone()
+            if not results:
+                print("\033[31mError, license plate not in the system!\033[m")
+            else:
+                # Erasing the brackets in the list to add the correct license plate into the table
+                l_plate = (''.join(old_license))
 
-            cursor.execute("UPDATE clients SET license_plate = %s, make = %s, color = %s WHERE license_plate = %s;",
-                           (new_license, make, color, old_license))
+                # Update customer's car details
+                new_license = (input("New License Plate: "))
+                make = (input("Make: "))
+                color = (input("Color: "))
 
-            print("\033[37mUpdated successfully.\033[m")
+                cursor.execute("UPDATE clients SET license_plate = %s, make = %s, color = %s "
+                               "WHERE license_plate = %s;", (new_license, make, color, l_plate))
+
+                print("\033[37mUpdated successfully.\033[m")
             connection.commit()
+
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, license plate not in the system.\033[m")
 
     @staticmethod
     def update_customer_details():
@@ -240,20 +250,29 @@ class Client:
             connection = connection.connect_psql()
             cursor = connection.cursor()
 
-            # Update customer's personal details
-            license_plate = (input("License Plate: "))
-            first_name = (input("First Name: "))
-            last_name = (input("Last Name: "))
+            # Check if the license plate is in the system.
+            license_plate = [(input("License Plate: "))]
+            cursor.execute("SELECT license_plate FROM clients WHERE license_plate = %s;", license_plate)
+            results = cursor.fetchone()
+            if not results:
+                print("\033[31mError, license plate not in the system!\033[m")
+            else:
+                # Erasing the brackets in the list to add the correct license plate into the table
+                l_plate = (''.join(license_plate))
 
-            cursor.execute("UPDATE clients SET first_name = %s, last_name = %s WHERE license_plate = %s;",
-                           (first_name, last_name, license_plate))
+                # Update customer's details
+                first_name = (input("First Name: ").title())
+                last_name = (input("Last Name: ").title())
 
-            print("\033[37mUpdated successfully.\033[m")
+                cursor.execute("UPDATE clients SET first_name = %s, last_name = %s WHERE license_plate = %s;",
+                               (first_name, last_name, l_plate))
+                print("\033[37mUpdated successfully.\033[m")
             connection.commit()
+
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, license plate not in the system.\033[m")
 
 
 class Management:
@@ -283,7 +302,7 @@ class Management:
             connection.close()
 
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, please try again.\033[m")
 
     @staticmethod
     def payment():
@@ -370,7 +389,7 @@ class Management:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mNo customer with that license plate registered in the car park.", "\033[m")
+            print("\033[31mNo customer with that license plate registered in the car park.\033[m")
 
     @staticmethod
     def get_cars_in_now():
@@ -408,7 +427,7 @@ class Management:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, please try again.\033[m")
 
     @staticmethod
     def get_report():
@@ -464,4 +483,4 @@ class Management:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, please try again.\033[m")
