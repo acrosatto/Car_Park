@@ -4,16 +4,16 @@ from time import sleep
 
 
 class Start:
-    """Start the program. Get title and frase to use duting the prgram"""
+    """Start the program. Get title and phrase to use during the program"""
 
-    def __init__(self, frase):
-        self.frase = frase
+    def __init__(self, phrase):
+        self.phrase = phrase
 
     def get_title(self):
-        return f'\033[37m{"==" * 30}\033[m\n{self.frase.center(60)}\n\033[37m{"==" * 30}\033[m'
+        return f'\033[37m{"==" * 30}\033[m\n{self.phrase.center(60)}\n\033[37m{"==" * 30}\033[m'
 
-    def get_frase(self):
-        return f'\033[1;32m{self.frase}\033[m'
+    def get_phrase(self):
+        return f'\033[1;32m{self.phrase}\033[m'
 
 
 class DB:
