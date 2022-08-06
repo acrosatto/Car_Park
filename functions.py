@@ -70,7 +70,7 @@ class Client:
             cursor.close()
             connection.close()
         except (Exception, psycopg2.Error):
-            print("\033[31mError, please try again.", "\033[m")
+            print("\033[31mError, please try again.\033[m")
 
     @staticmethod
     def regular_client_in():
@@ -156,11 +156,11 @@ class Client:
                     for r in results:
                         print("\033[37m\t-Entry:\033[m", r[0])
                         if r[3] == 'IN':
-                            print("\033[1;37m\t-Status:\033[1;32m", r[3], "\033[m", "\n")
+                            print("\033[1;37m\t-Status:\033[1;32m", r[3], "\033[m\n")
                         else:
                             print("\033[37m\t-Out:\033[m", r[1])
                             print("\033[37m\t-Paid:\033[m$", r[2])
-                            print("\033[1;37m\t-Status:\033[1;31m", r[3], "\033[m", "\n")
+                            print("\033[1;37m\t-Status:\033[1;31m", r[3], "\033[m\n")
                     connection.commit()
                     break
             else:
