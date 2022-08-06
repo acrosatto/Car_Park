@@ -12,7 +12,7 @@ title = Start("""\033[1;33m
 print(title.get_title())
 
 s = Start("OCCUPANCY NOW:")
-print(s.get_frase())
+print(s.get_phrase())
 Management.get_occupancy()
 
 spots = 15
@@ -26,7 +26,7 @@ while True:
              [ 𝟙 ]  Clients 
              [ 𝟚 ]  Management
              [ 𝟛 ]  END Program...''')
-    print(main_menu.get_frase())
+    print(main_menu.get_phrase())
     try:
         choice = int(input("\n>>> Please choose an option: "))
         if choice == 1:
@@ -41,7 +41,7 @@ while True:
                 [ 𝟛 ]  Client OUT(payment)
                 [ 𝟜 ]  Client details(check/update)
                 [ 𝟝 ]  Back to MAIN MENU''')
-                print(client_menu.get_frase())
+                print(client_menu.get_phrase())
                 client_choice = int(input("\n>>> Choose an option: "))
                 if spots <= 0 and client_choice == 1:
                     print("\033[1;31mSorry, the carpark is full.\033[m")
@@ -69,7 +69,7 @@ while True:
                 [ 𝟚 ]  UPDATE Car's Info
                 [ 𝟛 ]  Check Client's Info
                 [ 𝟜 ]  Back to CLIENTS MENU''')
-                        print(update_menu.get_frase())
+                        print(update_menu.get_phrase())
                         update_choice = int(input("\n>>> Choose an option: "))
                         if update_choice == 1:
                             Client.update_customer_details()
@@ -101,7 +101,7 @@ while True:
                 [ 𝟚 ]  Report per date
                 [ 𝟛 ]  Client's list
                 [ 𝟜 ]  Back to MAIN MENU''')
-                print(management_menu.get_frase())
+                print(management_menu.get_phrase())
                 management_choice = int(input("\n>>> Choose an option: "))
                 if management_choice == 1:
                     sleep(1)
@@ -111,7 +111,7 @@ while True:
                     Management.get_occupancy()
                     print()
                     s = Start("CARS IN NOW")
-                    print(s.get_frase())
+                    print(s.get_phrase())
                     Management.get_cars_in_now()
                     sleep(1)
                 elif management_choice == 2:
@@ -134,7 +134,7 @@ while True:
     ╠╩╗╚╦╝║╣ │││  ║  ║ ║║║║║╣   ╠╩╗╠═╣║  ╠╩╗  ╚═╗║ ║║ ║║║║
     ╚═╝ ╩ ╚═╝ooo  ╚═╝╚═╝╩ ╩╚═╝  ╚═╝╩ ╩╚═╝╩ ╩  ╚═╝╚═╝╚═╝╝╚╝
 """)
-            print(fin.get_frase())
+            print(fin.get_phrase())
             sleep(0.3)
             print("\033[32m", u"\U0001F697 ", end='')
             sleep(0.5)
